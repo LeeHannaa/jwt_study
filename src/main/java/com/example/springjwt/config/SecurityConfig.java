@@ -1,7 +1,8 @@
 package com.example.springjwt.config;
 
-import com.example.springjwt.filter.JwtFilter;
 import com.example.springjwt.jwt.JwtAuthenticationFilter;
+import com.example.springjwt.jwt.JwtAuthorizationFilter;
+import com.example.springjwt.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +14,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.CorsFilter;
 
 @Configuration
@@ -21,6 +21,7 @@ import org.springframework.web.filter.CorsFilter;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final UserRepository userRepository;
     @Bean
     public BCryptPasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
@@ -37,6 +38,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) //CSRF 보호 기능이 비활성화되어, CSRF 토큰을 체크하지 않음
                 .addFilter(corsFilter) // 무조건 이 필터를 탐, Cosr Origin 정책을 따르지 않음
                 .addFilter(new JwtAuthenticationFilter(authenticationManager)) // AuthenticationManager
+                .addFilter(new JwtAuthorizationFilter(authenticationManager, userRepository)) // AuthenticationManager
                 .sessionManagement((sessionManagement) -> sessionManagement
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // jwt 사용시 session 사용 x
                 .formLogin((formLogin) -> formLogin
